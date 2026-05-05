@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+data/*.db
+.env
+.env.local
+.streamlit/secrets.toml
+auth_config.yaml
+.DS_Store
+.vscode/
+.idea/
+*.log
+README.md
+deploy/

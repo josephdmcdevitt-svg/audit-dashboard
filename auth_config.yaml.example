@@ -1,0 +1,28 @@
+# Copy this file to auth_config.yaml and rotate the password before going live.
+# Generate a new bcrypt hash via:  python -m auth --hash mynewpass
+# Generate a new cookie key via:   python -c "import bcrypt; print(bcrypt.gensalt().decode())"
+credentials:
+  usernames:
+    admin:
+      name: Workspace Admin
+      email: admin@walgreens.com
+      password: $2b$12$REPLACE_WITH_YOUR_OWN_HASH_FROM_python_-m_auth_--hash
+      roles:
+        - editor
+    bill:
+      name: Bill
+      email: bill@walgreens.com
+      password: $2b$12$REPLACE_WITH_YOUR_OWN_HASH_FROM_python_-m_auth_--hash
+      roles:
+        - editor
+    viewer1:
+      name: Audit Committee Viewer
+      email: viewer@walgreens.com
+      password: $2b$12$REPLACE_WITH_YOUR_OWN_HASH_FROM_python_-m_auth_--hash
+      roles:
+        - viewer
+
+cookie:
+  name: ledger_auth
+  key: REPLACE_WITH_RANDOM_STRING_FROM_bcrypt_gensalt
+  expiry_days: 7
