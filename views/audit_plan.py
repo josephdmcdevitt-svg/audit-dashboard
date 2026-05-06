@@ -71,7 +71,7 @@ def _render_audit_card(a, members, weeks, is_editor: bool) -> None:
     )
     head = st.columns([4, 2])
     head[0].markdown(
-        f'<div style="font-size:15px;font-weight:700;margin-bottom:6px">{a.name}</div>'
+        f'<div style="font-size:15px;font-weight:700;margin-bottom:6px">{T.safe(a.name)}</div>'
         f'<div>'
         f'{T.badge_html(a.phase, T.PHASE_COLOR[a.phase])}'
         f'{T.badge_html(a.risk_rating + " Risk", T.RISK_COLOR[a.risk_rating])}'
