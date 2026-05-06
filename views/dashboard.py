@@ -61,9 +61,9 @@ def render(audits, members, activity, role: str) -> None:
                 f'padding:8px 0;border-bottom:1px solid {T.BORDER}">'
                 f'<div style="display:flex;gap:10px;align-items:center">'
                 f'<div style="width:4px;height:30px;border-radius:2px;background:{T.RISK_COLOR[a.risk_rating]}"></div>'
-                f'<div><div style="font-weight:600;color:{T.TEXT}">{a.name}</div>'
+                f'<div><div style="font-weight:600;color:{T.TEXT}">{T.safe(a.name)}</div>'
                 f'<div style="font-size:11px;color:{T.TEXT_MUTED};margin-top:2px">'
-                f'{a.phase} · {a.owner or "Unassigned"} · {a.risk_rating} risk</div></div></div>'
+                f'{a.phase} · {T.safe(a.owner) or "Unassigned"} · {a.risk_rating} risk</div></div></div>'
                 f'<div style="font-family:Menlo,monospace;font-size:13px;font-weight:700;color:{T.PRIMARY}">'
                 f'{a.completion_pct or 0}%</div></div>',
                 unsafe_allow_html=True,
@@ -78,7 +78,7 @@ def render(audits, members, activity, role: str) -> None:
             for m in overloaded:
                 st.markdown(
                     f'<div style="display:flex;justify-content:space-between;font-size:12px;color:{T.DANGER};padding:3px 0">'
-                    f'<span>{m.name}</span><span style="font-family:Menlo,monospace">{mwh[m.id][current_week]}h</span></div>',
+                    f'<span>{T.safe(m.name)}</span><span style="font-family:Menlo,monospace">{mwh[m.id][current_week]}h</span></div>',
                     unsafe_allow_html=True,
                 )
         if on_track:
@@ -86,7 +86,7 @@ def render(audits, members, activity, role: str) -> None:
             for m in on_track:
                 st.markdown(
                     f'<div style="display:flex;justify-content:space-between;font-size:12px;color:{T.TEXT_MUTED};padding:3px 0">'
-                    f'<span>{m.name}</span><span style="font-family:Menlo,monospace">{mwh[m.id][current_week]}h</span></div>',
+                    f'<span>{T.safe(m.name)}</span><span style="font-family:Menlo,monospace">{mwh[m.id][current_week]}h</span></div>',
                     unsafe_allow_html=True,
                 )
         if available:
@@ -94,7 +94,7 @@ def render(audits, members, activity, role: str) -> None:
             for m in available:
                 st.markdown(
                     f'<div style="display:flex;justify-content:space-between;font-size:12px;color:{T.TEXT_MUTED};padding:3px 0">'
-                    f'<span>{m.name}</span><span style="color:{T.SUCCESS};font-family:Menlo,monospace">'
+                    f'<span>{T.safe(m.name)}</span><span style="color:{T.SUCCESS};font-family:Menlo,monospace">'
                     f'{WEEK_HOURS - mwh[m.id][current_week]}h free</span></div>',
                     unsafe_allow_html=True,
                 )
