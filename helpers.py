@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timedelta
-from typing import Iterable
+from collections.abc import Iterable
 
 WEEK_HOURS = 40
 GREEN_THRESHOLD = 30
@@ -55,10 +55,7 @@ def month_label(iso: str) -> str:
 
 def is_holiday_week(iso: str) -> bool:
     start = date.fromisoformat(iso)
-    for i in range(5):
-        if (start + timedelta(days=i)).isoformat() in HOLIDAYS:
-            return True
-    return False
+    return any((start + timedelta(days=i)).isoformat() in HOLIDAYS for i in range(5))
 
 
 def max_hours_for_week(iso: str) -> int:
