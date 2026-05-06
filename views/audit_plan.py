@@ -378,15 +378,16 @@ def _detail_dialog(audit_id: str, can_edit: bool, user: str):
         ]:
             filled = bool(value and value.strip())
             border = f"1px solid {T.BORDER}" if filled else f"1px dashed {T.BORDER_LIGHT}"
+            display_value = T.safe(value) if filled else placeholder
             st.markdown(
                 f'<div style="margin-bottom:18px"><div style="font-size:11px;color:{T.TEXT_MUTED};'
                 f'text-transform:uppercase;font-weight:700;letter-spacing:0.8px;margin-bottom:8px">{label}</div>'
                 f'<div style="font-size:14px;color:{T.TEXT if filled else T.TEXT_DIM};line-height:1.7;'
                 f'padding:18px 22px;background:{T.PAPER_ALT};border-radius:10px;border:{border};'
-                f'font-style:{"normal" if filled else "italic"};white-space:pre-wrap">{value if filled else placeholder}</div></div>',
+                f'font-style:{"normal" if filled else "italic"};white-space:pre-wrap">{display_value}</div></div>',
                 unsafe_allow_html=True,
             )
-
+   
         st.markdown(f'<div style="font-size:11px;color:{T.TEXT_MUTED};text-transform:uppercase;'
                     f'font-weight:700;letter-spacing:0.8px;margin-bottom:8px">Workpapers</div>',
                     unsafe_allow_html=True)
