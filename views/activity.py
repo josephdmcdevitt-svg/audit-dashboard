@@ -23,11 +23,11 @@ def render(audits, members, activity, role: str) -> None:
             f'<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid {T.BORDER};align-items:flex-start">'
             f'<div style="width:8px;height:8px;border-radius:50%;background:{dot_color};margin-top:6px;flex-shrink:0"></div>'
             f'<div style="flex:1">'
-            f'<div style="font-size:13px"><b>{e.action}</b>'
-            + (f' <span style="color:{T.TEXT_MUTED}">- {e.detail}</span>' if e.detail else "")
+            f'<div style="font-size:13px"><b>{T.safe(e.action)}</b>'
+            + (f' <span style="color:{T.TEXT_MUTED}">- {T.safe(e.detail)}</span>' if e.detail else "")
             + "</div>"
             f'<div style="font-size:11px;color:{T.TEXT_DIM};margin-top:3px">'
-            + (f'<span style="color:{T.TEXT_MUTED};font-weight:600">{e.user} · </span>' if e.user else "")
+            + (f'<span style="color:{T.TEXT_MUTED};font-weight:600">{T.safe(e.user)} · </span>' if e.user else "")
             + f"{ts}</div></div></div>",
             unsafe_allow_html=True,
         )
