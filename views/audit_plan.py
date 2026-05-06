@@ -438,6 +438,7 @@ def _detail_dialog(audit_id: str, can_edit: bool, user: str):
             )
             if can_edit and cols[1].button("✕", key=f"delnote_{n.id}"):
                 data.delete_note(n.id)
+                data.log_activity("Deleted Note", f"on {a.name}", user)
                 st.rerun()
         if not a.notes:
             st.caption("No notes yet.")
