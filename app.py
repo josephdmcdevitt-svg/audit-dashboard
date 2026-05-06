@@ -27,10 +27,10 @@ def _ensure_initialized() -> None:
 def _render_sidebar(role: str, username: str) -> str:
     with st.sidebar:
         st.markdown(
-            f'<div class="ledger-brand">'
-            f'<div class="crest">L</div>'
-            f'<div><div class="name">Ledger</div>'
-            f'<div class="tag">Audit Planning</div></div></div>',
+            '<div class="ledger-brand">'
+            '<div class="crest">L</div>'
+            '<div><div class="name">Ledger</div>'
+            '<div class="tag">Audit Planning</div></div></div>',
             unsafe_allow_html=True,
         )
 
