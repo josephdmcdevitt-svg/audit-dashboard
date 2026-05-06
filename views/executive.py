@@ -1,32 +1,17 @@
 from __future__ import annotations
 
-from datetime import date, timedelta
-
+from datetime import date
 import streamlit as st
-
 import theme as T
-from helpers import BUSINESS_UNITS, weeks_between
+from helpers import BUSINESS_UNITS, traffic_light_status
 
 
 def render(audits, members, activity, role: str) -> None:
     today = date.today()
 
-    def light(a) -> str:
-        weeks = weeks_between(a.start_week, a.end_week)
-        allocated = sum(asgn.hours_per_week * weeks for asgn in a.assignments)
-        over_budget = allocated > a.budgeted_hours * 1.1
-        end_d = date.fromisoformat(a.end_week)
-        soon = end_d < today + timedelta(days=14)
-        behind = soon and (a.completion_pct or 0) < 80 and a.phase != "Complete"
-        if over_budget or behind:
-            return "Red"
-        if (a.completion_pct or 0) < 30 and a.phase == "Fieldwork":
-            return "Yellow"
-        return "Green"
-
     counts = {"Green": 0, "Yellow": 0, "Red": 0}
     for a in audits:
-        counts[light(a)] += 1
+        counts[traffic_light_status(a)] += 1
 
     st.markdown(
         f'<div style="padding:26px 28px;background:linear-gradient(135deg,{T.INK} 0%,#2d3d58 100%);'
@@ -64,7 +49,7 @@ def render(audits, members, activity, role: str) -> None:
             unsafe_allow_html=True,
         )
         for a in items:
-            l = light(a)
+            l = traffic_light_status(a)
             st.markdown(
                 f'<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;'
                 f'background:{T.PAPER_ALT};border-radius:8px;margin-bottom:6px;border:1px solid {T.BORDER}">'
