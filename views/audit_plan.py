@@ -427,8 +427,8 @@ def _detail_dialog(audit_id: str, can_edit: bool, user: str):
             cols[0].markdown(
                 f'<div style="padding:10px 0;border-bottom:1px solid {T.BORDER}">'
                 f'<div style="font-size:12px;color:{T.TEXT_MUTED}">'
-                f'<b style="color:{T.TEXT}">{n.author}</b> · {n.timestamp.strftime("%b %d, %-I:%M %p")}</div>'
-                f'<div style="font-size:13px;line-height:1.6;margin-top:4px;white-space:pre-wrap">{n.text}</div>'
+                f'<b style="color:{T.TEXT}">{T.safe(n.author)}</b> · {n.timestamp.strftime("%b %d, %-I:%M %p")}</div>'
+                f'<div style="font-size:13px;line-height:1.6;margin-top:4px;white-space:pre-wrap">{T.safe(n.text)}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
@@ -447,7 +447,7 @@ def _delete_audit_dialog(audit_id: str):
         st.rerun()
         return
     st.markdown(
-        f"**“{a.name}”** will be permanently removed from the plan, along with its "
+        f"**“{T.safe(a.name)}”** will be permanently removed from the plan, along with its "
         f"assignments and notes. This cannot be undone."
     )
     c1, c2 = st.columns(2)
