@@ -38,9 +38,15 @@ def get_monday(d: date | None = None) -> date:
     return d - timedelta(days=d.weekday())
 
 
-def week_keys(start: date | None = None, count: int = WEEKS_DISPLAY) -> list[str]:
+def week_keys(start: date | None = None, count: int = WEEKS_DISPLAY,
+              history: int = 0) -> list[str]:
+    """Return ISO week keys.
+
+    By default, returns `count` weeks starting from this Monday going forward.
+    Pass `history=N` to also include the previous N weeks before today's Monday.
+    """
     monday = get_monday(start)
-    return [(monday + timedelta(weeks=i)).isoformat() for i in range(count)]
+    return [(monday + timedelta(weeks=i)).isoformat() for i in range(-history, count)]
 
 
 def fmt_week(iso: str) -> str:
