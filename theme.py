@@ -1,3 +1,12 @@
+from html import escape as _esc
+
+def safe(s) -> str:
+    """Escape a value for inline HTML. Use on every user-controlled string."""
+    if s is None:
+        return ""
+    return _esc(str(s), quote=True)
+
+
 PAPER = "#f6f2e9"
 PAPER_ALT = "#efe9dc"
 CARD = "#ffffff"
