@@ -131,7 +131,7 @@ def _member_delete_dialog(member_id: str):
         st.session_state.pop("delete_member_id", None)
         st.rerun()
         return
-    st.markdown(f"**{m.name}** will be removed from the roster and unassigned from every audit.")
+    st.markdown(f"**{T.safe(m.name)}** will be removed from the roster and unassigned from every audit.")
     c1, c2 = st.columns(2)
     if c1.button("Cancel", use_container_width=True):
         st.session_state.pop("delete_member_id", None)
