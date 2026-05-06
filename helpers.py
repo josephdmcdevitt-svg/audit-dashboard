@@ -105,3 +105,23 @@ def member_week_hours(audits, members, weeks: list[str]) -> dict[str, dict[str, 
                 if a.start_week <= w <= a.end_week:
                     out[mid][w] = out[mid].get(w, 0) + (asgn.hours_per_week or 0)
     return out
+
+def traffic_light_status(audit) -> str:
+    """Return 'Red', 'Yellow', or 'Green' for an audit based on budget and progress.
+
+    Red: over budget by >10%, or behind schedule (end within 14 days,
+         completion <80%, and not yet marked Complete).
+    Yellow: in Fieldwork phase but completion <30%.
+    Green: everything else.
+    """
+    weeks = weeks_between(audit.start_week, audit.end_week)
+    allocated = sum(asgn.hours_per_week * weeks for asgn in audit.assignments)
+    over_budget = allocated > audit.budgeted_hours * 1.1
+    end_d = date.fromisoformat(audit.end_week)
+    soon = end_d < date.today() + timedelta(days=14)
+    behind = soon and (audit.completion_pct or 0) < 80 and audit.phase != "Complete"
+    if over_budget or behind:
+        return "Red"
+    if (audit.completion_pct or 0) < 30 and audit.phase == "Fieldwork":
+        return "Yellow"
+    return "Green"
