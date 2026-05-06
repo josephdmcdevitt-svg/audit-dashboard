@@ -392,7 +392,11 @@ def _detail_dialog(audit_id: str, can_edit: bool, user: str):
                     f'font-weight:700;letter-spacing:0.8px;margin-bottom:8px">Workpapers</div>',
                     unsafe_allow_html=True)
         if a.workpaper_url:
-            st.markdown(f"[Open workpaper folder ↗]({a.workpaper_url})")
+            url = a.workpaper_url
+            if url.startswith(("http://", "https://")):
+                st.markdown(f"[Open workpaper folder ↗]({url})")
+            else:
+                st.caption("Workpaper URL must start with http:// or https://")
         else:
             st.markdown(
                 f'<div style="font-size:14px;color:{T.TEXT_DIM};font-style:italic;'
