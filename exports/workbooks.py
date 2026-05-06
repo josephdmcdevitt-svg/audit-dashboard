@@ -9,7 +9,8 @@ from openpyxl.utils import get_column_letter
 
 from helpers import (
     BUSINESS_UNITS, GREEN_THRESHOLD, WEEK_HOURS,
-    fmt_week, is_holiday_week, max_hours_for_week, month_label, weeks_between,
+    fmt_week, is_holiday_week, max_hours_for_week, month_label,
+    traffic_light_status, weeks_between,
 )
 
 INK = "1A2332"
@@ -327,21 +328,6 @@ def executive_xlsx(audits, members) -> io.BytesIO:
 
     today = datetime.now().date().isoformat()
 
-    def light(a) -> str:
-        weeks = weeks_between(a.start_week, a.end_week)
-        allocated = sum(asgn.hours_per_week * weeks for asgn in a.assignments)
-        over_budget = allocated > a.budgeted_hours * 1.1
-        end_soon = a.end_week < (datetime.now().date().replace(day=1).isoformat())
-        # Rough proxy: "behind" if completion <80% and end week within 14 days
-        from datetime import date, timedelta
-        end_d = date.fromisoformat(a.end_week)
-        soon = end_d < date.today() + timedelta(days=14)
-        behind = soon and (a.completion_pct or 0) < 80 and a.phase != "Complete"
-        if over_budget or behind:
-            return "Red"
-        if (a.completion_pct or 0) < 30 and a.phase == "Fieldwork":
-            return "Yellow"
-        return "Green"
 
     headers = ["Status", "Audit", "Business Unit", "Phase", "Risk", "Owner", "% Complete", "End Week"]
     _set_widths(ws, [10, 44, 18, 14, 12, 18, 12, 12])
@@ -351,11 +337,11 @@ def executive_xlsx(audits, members) -> io.BytesIO:
     _style_header_row(ws, 4, len(headers))
 
     order = {"Red": 0, "Yellow": 1, "Green": 2}
-    ordered = sorted(audits, key=lambda a: (order[light(a)], a.business_unit or ""))
+    ordered = sorted(audits, key=lambda a: (order[traffic_light_status(a)], a.business_unit or ""))
 
     for i, a in enumerate(ordered):
         row = 5 + i
-        status = light(a)
+        status = traffic_light_status(a)
         values = [status, a.name, a.business_unit or "-", a.phase, a.risk_rating, a.owner or "-", (a.completion_pct or 0) / 100, fmt_week(a.end_week)]
         for c, v in enumerate(values, start=1):
             ws.cell(row=row, column=c, value=v)

@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from sqlalchemy import (
-    Column, DateTime, ForeignKey, Integer, String, Text, create_engine, select,
+    DateTime, ForeignKey, Integer, String, Text, create_engine, select,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
 
@@ -33,9 +33,7 @@ class TeamMember(Base):
     level: Mapped[str] = mapped_column(String(40), nullable=False, default="Staff")
     hours_per_week: Mapped[int] = mapped_column(Integer, default=40)
     email: Mapped[str | None] = mapped_column(String(160), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
-
-
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 class Audit(Base):
     __tablename__ = "audits"
     id: Mapped[str] = mapped_column(String(16), primary_key=True, default=_short_id)
@@ -55,43 +53,36 @@ class Audit(Base):
     scope: Mapped[str | None] = mapped_column(Text, nullable=True)
     workpaper_url: Mapped[str | None] = mapped_column(String(400), nullable=True)
     business_unit: Mapped[str | None] = mapped_column(String(60), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
-
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
     assignments: Mapped[list["Assignment"]] = relationship(
         back_populates="audit", cascade="all, delete-orphan", lazy="selectin"
     )
     notes: Mapped[list["Note"]] = relationship(
         back_populates="audit", cascade="all, delete-orphan", lazy="selectin"
     )
-
-
 class Assignment(Base):
     __tablename__ = "assignments"
     audit_id: Mapped[str] = mapped_column(ForeignKey("audits.id", ondelete="CASCADE"), primary_key=True)
     member_id: Mapped[str] = mapped_column(ForeignKey("team_members.id", ondelete="CASCADE"), primary_key=True)
     hours_per_week: Mapped[int] = mapped_column(Integer, default=0)
     audit: Mapped[Audit] = relationship(back_populates="assignments")
-
-
 class Note(Base):
     __tablename__ = "notes"
     id: Mapped[str] = mapped_column(String(16), primary_key=True, default=_short_id)
     audit_id: Mapped[str] = mapped_column(ForeignKey("audits.id", ondelete="CASCADE"))
     text: Mapped[str] = mapped_column(Text, nullable=False)
     author: Mapped[str] = mapped_column(String(120), nullable=False)
-    timestamp: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     audit: Mapped[Audit] = relationship(back_populates="notes")
-
-
 class ActivityEntry(Base):
     __tablename__ = "activity_log"
     id: Mapped[str] = mapped_column(String(16), primary_key=True, default=_short_id)
-    timestamp: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, index=True)
     action: Mapped[str] = mapped_column(String(80), nullable=False)
     detail: Mapped[str | None] = mapped_column(Text, nullable=True)
     user: Mapped[str] = mapped_column(String(120), default="system")
-
+    
 
 _engine = None
 

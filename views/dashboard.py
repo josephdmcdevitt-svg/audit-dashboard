@@ -157,7 +157,7 @@ def _build_utilization_df(members, mwh, weeks):
         if v > WEEK_HOURS:
             return f"background-color:#e6c2bb;color:{T.DANGER_DEEP};font-weight:700"
         if v > WEEK_HOURS * 0.85:
-            return f"background-color:#e8d4a8;color:#8b6423"
+            return "background-color:#e8d4a8;color:#8b6423"
         if v >= GREEN_THRESHOLD:
             return "background-color:#c8d0dd"
         if v > 0:
