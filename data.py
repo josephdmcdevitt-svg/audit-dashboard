@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from sqlalchemy import (
-    Column, DateTime, ForeignKey, Integer, String, Text, create_engine, select,
+    DateTime, ForeignKey, Integer, String, Text, create_engine, select,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
 
