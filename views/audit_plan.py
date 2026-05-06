@@ -360,10 +360,10 @@ def _detail_dialog(audit_id: str, can_edit: bool, user: str):
     st.markdown(
         T.badge_html(a.phase, T.PHASE_COLOR[a.phase])
         + T.badge_html(f"{a.risk_rating} Risk (L{a.likelihood} × I{a.impact})", T.RISK_COLOR[a.risk_rating])
-        + T.badge_html(a.type, T.TEXT_MUTED)
-        + (T.badge_html(a.business_unit, T.TEXT_MUTED) if a.business_unit else "")
-        + T.badge_html(f"Owner: {a.owner or '-'}", T.TEXT_MUTED)
-        + (T.badge_html(f"Sponsor: {a.sponsor}", T.TEXT_MUTED) if a.sponsor else ""),
+        + T.badge_html(T.safe(a.type), T.TEXT_MUTED)
+        + (T.badge_html(T.safe(a.business_unit), T.TEXT_MUTED) if a.business_unit else "")
+        + T.badge_html(f"Owner: {T.safe(a.owner) or '-'}", T.TEXT_MUTED)
+        + (T.badge_html(f"Sponsor: {T.safe(a.sponsor)}", T.TEXT_MUTED) if a.sponsor else ""),
         unsafe_allow_html=True,
     )
 
