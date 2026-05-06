@@ -189,12 +189,16 @@ def _audit_edit_dialog(audit_id: str, members, weeks):
         )
 
         c1, c2, c3 = st.columns(3)
-        start_idx = 0 if is_new else (weeks.index(a.start_week) if a.start_week in weeks else 0)
-        end_idx = 12 if is_new else (weeks.index(a.end_week) if a.end_week in weeks else 12)
-        start = c1.selectbox("Start Week", weeks, index=start_idx, format_func=fmt_week)
-        end = c2.selectbox("End Week", weeks, index=max(end_idx, weeks.index(start)), format_func=fmt_week)
+        # Edit dialog uses an extended week range (26 weeks past + 52 forward)
+        # so audits whose start dates have already passed can still be edited.
+        edit_weeks = week_keys(history=26)
+        start_idx = edit_weeks.index(a.start_week) if (not is_new and a.start_week in edit_weeks) else 26
+        end_idx = edit_weeks.index(a.end_week) if (not is_new and a.end_week in edit_weeks) else 38
+        start = c1.selectbox("Start Week", edit_weeks, index=start_idx, format_func=fmt_week)
+        safe_end_idx = max(end_idx, edit_weeks.index(start)) if start in edit_weeks else end_idx
+        end = c2.selectbox("End Week", edit_weeks, index=safe_end_idx, format_func=fmt_week)
         budget = c3.number_input("Budgeted Hours", min_value=0, value=200 if is_new else a.budgeted_hours, step=20)
-
+        
         objectives = st.text_area("Objectives", value="" if is_new else (a.objectives or ""), height=80)
         scope = st.text_area("Scope", value="" if is_new else (a.scope or ""), height=80)
         workpaper = st.text_input("Workpapers URL", value="" if is_new else (a.workpaper_url or ""))
