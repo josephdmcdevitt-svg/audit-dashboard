@@ -75,8 +75,8 @@ def _render_audit_card(a, members, weeks, is_editor: bool) -> None:
         f'<div>'
         f'{T.badge_html(a.phase, T.PHASE_COLOR[a.phase])}'
         f'{T.badge_html(a.risk_rating + " Risk", T.RISK_COLOR[a.risk_rating])}'
-        f'{T.badge_html(a.type, T.TEXT_MUTED)}'
-        + (T.badge_html(a.business_unit, T.TEXT_MUTED) if a.business_unit else "")
+        f'{T.badge_html(T.safe(a.type), T.TEXT_MUTED)}'
+        + (T.badge_html(T.safe(a.business_unit), T.TEXT_MUTED) if a.business_unit else "")
         + (T.badge_html(f"{len(a.notes)} Notes", T.TEXT_DIM) if a.notes else "")
         + "</div>",
         unsafe_allow_html=True,
@@ -99,8 +99,8 @@ def _render_audit_card(a, members, weeks, is_editor: bool) -> None:
     grid = st.columns(6)
     cells = [
         ("Timeline", f"{fmt_week(a.start_week)} → {fmt_week(a.end_week)}", False),
-        ("Owner", a.owner or "-", False),
-        ("Sponsor", a.sponsor or "-", False),
+        ("Owner", T.safe(a.owner) or "-", False),
+        ("Sponsor", T.safe(a.sponsor) or "-", False),
         ("Budget", f"{allocated}h / {a.budgeted_hours}h", over),
         ("Team", f"{len(a.assignments)} people", False),
         ("Progress", f"{a.completion_pct or 0}%", False),
@@ -120,7 +120,7 @@ def _render_audit_card(a, members, weeks, is_editor: bool) -> None:
             f'<div style="font-size:12px;color:{T.TEXT_MUTED};line-height:1.5;margin-top:10px;'
             f'padding-top:10px;border-top:1px solid {T.BORDER}">'
             f'<span style="color:{T.TEXT_DIM};font-weight:700;text-transform:uppercase;'
-            f'font-size:10px;letter-spacing:0.5px">Objectives: </span>{a.objectives}</div>',
+            f'font-size:10px;letter-spacing:0.5px">Objectives: </span>{T.safe(a.objectives)}</div>',
             unsafe_allow_html=True,
         )
 
@@ -133,7 +133,7 @@ def _render_audit_card(a, members, weeks, is_editor: bool) -> None:
                     f'<span style="display:inline-flex;gap:6px;align-items:center;'
                     f'background:{T.PAPER_ALT};border:1px solid {T.BORDER};border-radius:8px;'
                     f'padding:6px 10px;margin-right:6px;font-size:12px">'
-                    f'<b>{m.name}</b><span style="color:{T.TEXT_DIM}">·</span>'
+                    f'<b>{T.safe(m.name)}</b><span style="color:{T.TEXT_DIM}">·</span>'
                     f'<span style="color:{T.PRIMARY};font-weight:700;font-family:Menlo,monospace">{asgn.hours_per_week}h/wk</span>'
                     f'</span>'
                 )
@@ -253,7 +253,7 @@ def _assignment_dialog(audit_id: str, members, audits, weeks, user: str):
 
     st.markdown(
         f'<div class="ledger-card" style="margin-bottom:12px">'
-        f'<div style="font-size:15px;font-weight:700">{a.name}</div>'
+        f'<div style="font-size:15px;font-weight:700">{T.safe(a.name)}</div>'
         f'<div style="font-size:12px;color:{T.TEXT_MUTED}">{weeks_in}-week timeline · '
         f'{fmt_week(a.start_week)} → {fmt_week(a.end_week)}</div>'
         f'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px">'
@@ -291,8 +291,8 @@ def _assignment_dialog(audit_id: str, members, audits, weeks, user: str):
             f'<div style="padding:10px 14px;background:{bg};border:1px solid {border_color};'
             f'border-radius:10px;margin-bottom:8px">'
             f'<div style="display:flex;justify-content:space-between;align-items:center;gap:14px">'
-            f'<div><div style="font-size:13px;font-weight:700;color:{name_color}">{m.name}</div>'
-            f'<div style="font-size:11px;color:{sub_color}">{m.level}'
+            f'<div><div style="font-size:13px;font-weight:700;color:{name_color}">{T.safe(m.name)}</div>'
+            f'<div style="font-size:11px;color:{sub_color}">{T.safe(m.level)}'
             + ("" if is_assigned else " · <em>Available</em>")
             + "</div></div></div></div>",
             unsafe_allow_html=True,
@@ -356,7 +356,7 @@ def _detail_dialog(audit_id: str, can_edit: bool, user: str):
             st.rerun()
         return
 
-    st.markdown(f"### {a.name}")
+    st.markdown(f"### {T.safe(a.name)}")
     st.markdown(
         T.badge_html(a.phase, T.PHASE_COLOR[a.phase])
         + T.badge_html(f"{a.risk_rating} Risk (L{a.likelihood} × I{a.impact})", T.RISK_COLOR[a.risk_rating])
