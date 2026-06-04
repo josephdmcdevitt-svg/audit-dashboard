@@ -7,7 +7,7 @@ from helpers import week_keys
 def seed_if_empty() -> bool:
     weeks = week_keys()
     with session_scope() as s:
-        if s.query(Audit).first() is not None:
+        if s.query(Audit).first() is not None or s.query(TeamMember).first() is not None:
             return False
 
         members = [
