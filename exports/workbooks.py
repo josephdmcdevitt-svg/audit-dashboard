@@ -9,7 +9,7 @@ from openpyxl.utils import get_column_letter
 
 from helpers import (
     BUSINESS_UNITS, GREEN_THRESHOLD,
-    fmt_week, is_holiday_week, member_capacity, month_label,
+    fmt_week, is_holiday_week, member_capacity, month_label, strf,
     traffic_light_status, weeks_between,
 )
 
@@ -31,7 +31,7 @@ HEADER_BOTTOM = Side(style="medium", color=ACCENT)
 
 
 def _generated_at() -> str:
-    return datetime.now().strftime("%b %d, %Y · %-I:%M %p")
+    return strf(datetime.now(), "%b %d, %Y · %-I:%M %p")
 
 
 def _apply_title(ws, title: str, subtitle: str, span: int) -> None:
@@ -407,7 +407,7 @@ def activity_log_xlsx(activity) -> io.BytesIO:
     sorted_log = sorted(activity, key=lambda e: e.timestamp, reverse=True)
     for i, e in enumerate(sorted_log):
         row = 5 + i
-        ts = e.timestamp.strftime("%b %d %Y · %-I:%M %p") if hasattr(e.timestamp, "strftime") else str(e.timestamp)
+        ts = strf(e.timestamp, "%b %d %Y · %-I:%M %p") if hasattr(e.timestamp, "strftime") else str(e.timestamp)
         values = [ts, e.user or "-", e.action, e.detail or ""]
         for c, v in enumerate(values, start=1):
             ws.cell(row=row, column=c, value=v)

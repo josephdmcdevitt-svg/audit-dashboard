@@ -3,6 +3,7 @@ from __future__ import annotations
 import streamlit as st
 
 import theme as T
+from helpers import strf
 
 
 def render(audits, members, activity, role: str) -> None:
@@ -18,7 +19,7 @@ def render(audits, members, activity, role: str) -> None:
         dot_color = T.DANGER if "Delete" in e.action or "Removed" in e.action else (
             T.SUCCESS if "Added" in e.action else T.PRIMARY
         )
-        ts = e.timestamp.strftime("%b %-d  %-I:%M %p") if hasattr(e.timestamp, "strftime") else str(e.timestamp)
+        ts = strf(e.timestamp, "%b %-d  %-I:%M %p") if hasattr(e.timestamp, "strftime") else str(e.timestamp)
         st.markdown(
             f'<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid {T.BORDER};align-items:flex-start">'
             f'<div style="width:8px;height:8px;border-radius:50%;background:{dot_color};margin-top:6px;flex-shrink:0"></div>'

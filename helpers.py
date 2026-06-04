@@ -96,12 +96,21 @@ def weeks_between(start_iso: str, end_iso: str) -> int:
     return max(1, (e - s).days // 7 + 1)
 
 
+def strf(d: datetime | date, fmt: str) -> str:
+    """strftime with %-I and %-d support on every OS (Windows lacks them)."""
+    if "%-I" in fmt:
+        fmt = fmt.replace("%-I", str(int(d.strftime("%I"))))
+    if "%-d" in fmt:
+        fmt = fmt.replace("%-d", str(d.day))
+    return d.strftime(fmt)
+
+
 def fmt_timestamp(iso: str | datetime) -> str:
     d = iso if isinstance(iso, datetime) else datetime.fromisoformat(iso.replace("Z", "+00:00"))
     today = datetime.now().date()
     if d.date() == today:
-        return "Today " + d.strftime("%-I:%M %p")
-    return d.strftime("%b %-d %-I:%M %p")
+        return "Today " + strf(d, "%-I:%M %p")
+    return strf(d, "%b %-d %-I:%M %p")
 
 
 def weeks_in_audit(audit_start: str, audit_end: str, weeks: Iterable[str]) -> list[str]:

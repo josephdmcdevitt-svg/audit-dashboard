@@ -6,7 +6,7 @@ import data
 import theme as T
 from helpers import (
     AUDIT_TYPES, BUSINESS_UNITS, LEVELS, PHASES, RISK_LEVELS,
-    fmt_week, member_capacity, member_week_hours, risk_from_score, week_keys,
+    fmt_week, member_capacity, member_week_hours, risk_from_score, strf, week_keys,
     weeks_between,
 )
 
@@ -445,7 +445,7 @@ def _detail_dialog(audit_id: str, can_edit: bool, user: str):
             cols[0].markdown(
                 f'<div style="padding:10px 0;border-bottom:1px solid {T.BORDER}">'
                 f'<div style="font-size:12px;color:{T.TEXT_MUTED}">'
-                f'<b style="color:{T.TEXT}">{T.safe(n.author)}</b> · {n.timestamp.strftime("%b %d, %-I:%M %p")}</div>'
+                f'<b style="color:{T.TEXT}">{T.safe(n.author)}</b> · {strf(n.timestamp, "%b %d, %-I:%M %p")}</div>'
                 f'<div style="font-size:13px;line-height:1.6;margin-top:4px;white-space:pre-wrap">{T.safe(n.text)}</div>'
                 f'</div>',
                 unsafe_allow_html=True,

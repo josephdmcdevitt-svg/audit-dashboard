@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date
 import streamlit as st
 import theme as T
-from helpers import BUSINESS_UNITS, traffic_light_status
+from helpers import BUSINESS_UNITS, strf, traffic_light_status
 
 
 def render(audits, members, activity, role: str) -> None:
@@ -19,7 +19,7 @@ def render(audits, members, activity, role: str) -> None:
         f'<div style="font-family:Georgia,serif;font-size:22px;font-weight:600;letter-spacing:-0.3px">'
         f'Executive Summary</div>'
         f'<div style="color:#c9c0a8;font-size:13px;margin-top:4px">'
-        f'Audit Committee status · {today.strftime("%B %-d, %Y")}</div>'
+        f'Audit Committee status · {strf(today, "%B %-d, %Y")}</div>'
         f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:22px">'
         f'<div style="text-align:center;padding:18px;background:rgba(255,255,255,0.05);border-radius:10px;border:1px solid {T.SUCCESS}66">'
         f'<div style="font-family:Georgia,serif;font-size:42px;font-weight:500;color:#8ab39a;line-height:1">{counts["Green"]}</div>'

@@ -21,7 +21,7 @@ st.markdown(T.CSS, unsafe_allow_html=True)
 def _ensure_initialized() -> None:
     data.get_engine()
     if seed_if_empty():
-        st.toast("Seeded sample workspace.", icon="◆")
+        st.toast("Seeded sample workspace.")
 
 
 def _render_sidebar(role: str, username: str) -> str:
