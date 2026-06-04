@@ -98,7 +98,6 @@ def _member_edit_dialog(member_id: str):
     st.markdown(f"### {'Add Team Member' if is_new else 'Edit Team Member'}")
     with st.form("member_form"):
         name = st.text_input("Full name", value="" if is_new else m.name)
-        email = st.text_input("Email", value="" if is_new else (m.email or ""), placeholder="name@example.com")
         c1, c2 = st.columns(2)
         level = c1.selectbox("Level", LEVELS, index=LEVELS.index("Staff") if (is_new or m.level not in LEVELS) else LEVELS.index(m.level))
         hours = c2.number_input("Hours/week", min_value=0, max_value=80, value=40 if is_new else m.hours_per_week, step=5)
@@ -114,7 +113,9 @@ def _member_edit_dialog(member_id: str):
         if not name.strip():
             st.error("Name is required.")
             return
-        fields = dict(name=name.strip(), email=email.strip() or None, level=level, hours_per_week=int(hours))
+        # email intentionally not collected; upsert only touches passed keys,
+        # so existing emails are preserved on edit.
+        fields = dict(name=name.strip(), level=level, hours_per_week=int(hours))
         if is_new:
             data.upsert_member(None, **fields)
             data.log_activity("Added Team Member", name, st.session_state.get("name", "Editor"))
