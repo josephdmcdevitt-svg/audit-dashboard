@@ -193,6 +193,11 @@ def resolve_user() -> tuple[str, str, str] | None:
             )
             return None
         name, email = ident
+        # Views read st.session_state["name"] for activity-log attribution,
+        # and streamlit-authenticator sets it in local mode. Mirror that here
+        # so the audit trail records the real person under SSO too.
+        st.session_state["name"] = name
+        st.session_state["username"] = email
         return (name, email, role_for_email(email))
 
     authenticator = get_authenticator()

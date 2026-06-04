@@ -193,6 +193,14 @@ def _audit_edit_dialog(audit_id: str, members, weeks):
         # Edit dialog uses an extended week range (26 weeks past + 52 forward)
         # so audits whose start dates have already passed can still be edited.
         edit_weeks = week_keys(history=26)
+        # Keep the audit's existing weeks selectable even when they fall
+        # outside the 26-back/52-forward window, so opening Edit on an old
+        # audit and hitting Save cannot silently rewrite its dates.
+        if not is_new:
+            for wk in (a.start_week, a.end_week):
+                if wk not in edit_weeks:
+                    edit_weeks.append(wk)
+            edit_weeks.sort()
         start_idx = edit_weeks.index(a.start_week) if (not is_new and a.start_week in edit_weeks) else 26
         end_idx = edit_weeks.index(a.end_week) if (not is_new and a.end_week in edit_weeks) else 38
         start = c1.selectbox("Start Week", edit_weeks, index=start_idx, format_func=fmt_week)

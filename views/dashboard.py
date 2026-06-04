@@ -170,5 +170,8 @@ def _build_utilization_df(members, mwh, weeks):
             return "background-color:#c8d6cb"
         return f"color:{T.TEXT_DIM}"
 
-    styler = df.style.format("{:.0f}").map(color_cell)
+    member_rows = df.index[:-2]  # exclude Team Total and Available Capacity
+    styler = df.style.format("{:.0f}")
+    if len(member_rows):
+        styler = styler.map(color_cell, subset=(member_rows, df.columns))
     return styler

@@ -50,7 +50,7 @@ def _render_sidebar(role: str, username: str) -> str:
         st.markdown("---")
         st.markdown(
             f'<div style="font-size:11px;color:{T.TEXT_MUTED}">Signed in as</div>'
-            f'<div style="font-size:13px;font-weight:700;color:{T.INK}">{username}</div>'
+            f'<div style="font-size:13px;font-weight:700;color:{T.INK}">{T.safe(username)}</div>'
             f'<div style="font-size:10px;color:{T.TEXT_DIM};text-transform:uppercase;'
             f'letter-spacing:1px;margin-top:2px">{role}</div>',
             unsafe_allow_html=True,
