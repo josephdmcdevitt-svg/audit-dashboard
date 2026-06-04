@@ -6,7 +6,7 @@ import data
 import theme as T
 from helpers import (
     AUDIT_TYPES, BUSINESS_UNITS, LEVELS, PHASES, RISK_LEVELS,
-    fmt_week, member_capacity, member_week_hours, risk_from_score, strf, week_keys,
+    fmt_week, member_capacity, member_week_hours, strf, week_keys,
     weeks_between,
 )
 
@@ -177,17 +177,12 @@ def _audit_edit_dialog(audit_id: str, members, weeks):
         owner = c2.selectbox("Audit Owner", owner_options, index=owner_default)
         sponsor = c3.text_input("Business Sponsor", value="" if is_new else (a.sponsor or ""))
 
-        c1, c2 = st.columns(2)
-        likelihood = c1.slider("Likelihood", 1, 5, value=3 if is_new else a.likelihood)
-        impact = c2.slider("Impact", 1, 5, value=3 if is_new else a.impact)
-        risk = risk_from_score(likelihood, impact)
-        st.markdown(
-            f'<span style="font-size:11px;color:{T.TEXT_MUTED};text-transform:uppercase;'
-            f'font-weight:700">Computed Risk: </span>'
-            f'{T.badge_html(risk, T.risk_color(risk), solid=True)}'
-            f'<span style="font-size:11px;color:{T.TEXT_DIM}"> · Score {likelihood * impact}</span>',
-            unsafe_allow_html=True,
-        )
+        risk_default = a.risk_rating if (not is_new and a.risk_rating in RISK_LEVELS) else "Medium"
+        risk = st.selectbox("Risk Rating", RISK_LEVELS, index=RISK_LEVELS.index(risk_default))
+        # Keep stored likelihood/impact consistent with the chosen rating so
+        # the L/I columns in exports stay coherent.
+        _li = {"Low": (1, 1), "Medium": (2, 3), "High": (3, 4), "Critical": (4, 4)}
+        likelihood, impact = _li[risk]
 
         c1, c2, c3 = st.columns(3)
         # Edit dialog uses an extended week range (26 weeks past + 52 forward)
@@ -207,10 +202,6 @@ def _audit_edit_dialog(audit_id: str, members, weeks):
         safe_end_idx = max(end_idx, edit_weeks.index(start)) if start in edit_weeks else end_idx
         end = c2.selectbox("End Week", edit_weeks, index=safe_end_idx, format_func=fmt_week)
         budget = c3.number_input("Budgeted Hours", min_value=0, value=200 if is_new else a.budgeted_hours, step=20)
-        
-        objectives = st.text_area("Objectives", value="" if is_new else (a.objectives or ""), height=80)
-        scope = st.text_area("Scope", value="" if is_new else (a.scope or ""), height=80)
-        workpaper = st.text_input("Workpapers URL", value="" if is_new else (a.workpaper_url or ""))
 
         save_col, cancel_col = st.columns([1, 1])
         save = save_col.form_submit_button("Save Changes" if not is_new else "Add Audit", type="primary", use_container_width=True)
@@ -230,8 +221,6 @@ def _audit_edit_dialog(audit_id: str, members, weeks):
             sponsor=sponsor.strip() or None,
             likelihood=likelihood, impact=impact, risk_rating=risk,
             start_week=start, end_week=end, budgeted_hours=int(budget),
-            objectives=objectives.strip() or None, scope=scope.strip() or None,
-            workpaper_url=workpaper.strip() or None,
         )
         if is_new:
             data.upsert_audit(None, **fields)
@@ -310,10 +299,10 @@ def _assignment_dialog(audit_id: str, members, audits, weeks, user: str):
             + "</div></div></div></div>",
             unsafe_allow_html=True,
         )
-        new_hrs = st.slider(
-            f"Hours/week, {m.name}", 0, 60, hrs,
+        new_hrs = int(st.number_input(
+            f"Hours/week, {m.name}", min_value=0, max_value=168, value=hrs, step=1,
             key=f"hrs_{audit_id}_{m.id}", label_visibility="collapsed",
-        )
+        ))
         if new_hrs != hrs:
             draft[m.id] = new_hrs
             if new_hrs <= 0:
