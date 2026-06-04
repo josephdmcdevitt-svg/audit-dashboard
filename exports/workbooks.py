@@ -4,6 +4,7 @@ import io
 from datetime import datetime
 
 from openpyxl import Workbook
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
@@ -28,6 +29,10 @@ SLATE_MUTED = "64748B"
 THIN = Side(style="thin", color=BORDER)
 HEADER_TOP = Side(style="thin", color=INK)
 HEADER_BOTTOM = Side(style="medium", color=ACCENT)
+
+def _x(v):
+    """Strip XML-illegal control characters from strings before cell writes."""
+    return ILLEGAL_CHARACTERS_RE.sub("", v) if isinstance(v, str) else v
 
 
 def _generated_at() -> str:
@@ -114,7 +119,7 @@ def audit_plan_xlsx(audits, members) -> io.BytesIO:
             len(a.assignments), a.objectives or "",
         ]
         for c, v in enumerate(values, start=1):
-            ws.cell(row=row, column=c, value=v)
+            ws.cell(row=row, column=c, value=_x(v))
         _band_row(ws, row, len(headers), i % 2 == 1)
 
         risk_cell = ws.cell(row=row, column=5)
@@ -187,7 +192,7 @@ def team_roster_xlsx(members, audits, member_week_hours, week_keys) -> io.BytesI
 
         values = [m.name, m.level, m.email or "", this_week, annual, status, assigned]
         for c, v in enumerate(values, start=1):
-            ws.cell(row=row, column=c, value=v)
+            ws.cell(row=row, column=c, value=_x(v))
         _band_row(ws, row, len(headers), i % 2 == 1)
 
         sc = ws.cell(row=row, column=6)
@@ -245,8 +250,8 @@ def utilization_xlsx(members, member_week_hours, week_keys) -> io.BytesIO:
     for mi, m in enumerate(members):
         row = 6 + mi
         annual = sum(member_week_hours.get(m.id, {}).get(w, 0) for w in week_keys)
-        ws.cell(row=row, column=1, value=m.name)
-        ws.cell(row=row, column=2, value=m.level)
+        ws.cell(row=row, column=1, value=_x(m.name))
+        ws.cell(row=row, column=2, value=_x(m.level))
         ws.cell(row=row, column=3, value=annual)
         _band_row(ws, row, len(headers), mi % 2 == 1)
         ws.cell(row=row, column=1).font = Font(name="Calibri", size=10, bold=True, color=INK)
@@ -346,7 +351,7 @@ def executive_xlsx(audits, members) -> io.BytesIO:
         status = traffic_light_status(a)
         values = [status, a.name, a.business_unit or "-", a.phase, a.risk_rating, a.owner or "-", (a.completion_pct or 0) / 100, fmt_week(a.end_week)]
         for c, v in enumerate(values, start=1):
-            ws.cell(row=row, column=c, value=v)
+            ws.cell(row=row, column=c, value=_x(v))
         _band_row(ws, row, len(headers), i % 2 == 1)
         sc = ws.cell(row=row, column=1)
         color = BRICK if status == "Red" else OCHRE if status == "Yellow" else SAGE
@@ -380,7 +385,7 @@ def executive_xlsx(audits, members) -> io.BytesIO:
             sum(a.budgeted_hours for a in bu_audits),
         ]
         for c, v in enumerate(values, start=1):
-            ws2.cell(row=row, column=c, value=v)
+            ws2.cell(row=row, column=c, value=_x(v))
         _band_row(ws2, row, len(h2), bu_idx % 2 == 1)
         for c in (2, 3, 4, 5, 6):
             ws2.cell(row=row, column=c).alignment = Alignment(vertical="center", horizontal="center")
@@ -410,7 +415,7 @@ def activity_log_xlsx(activity) -> io.BytesIO:
         ts = strf(e.timestamp, "%b %d %Y · %-I:%M %p") if hasattr(e.timestamp, "strftime") else str(e.timestamp)
         values = [ts, e.user or "-", e.action, e.detail or ""]
         for c, v in enumerate(values, start=1):
-            ws.cell(row=row, column=c, value=v)
+            ws.cell(row=row, column=c, value=_x(v))
         _band_row(ws, row, len(headers), i % 2 == 1)
         ac = ws.cell(row=row, column=3)
         color = BRICK if "Delete" in e.action else SAGE if "Add" in e.action else INK
