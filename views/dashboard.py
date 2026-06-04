@@ -5,7 +5,7 @@ import streamlit as st
 
 import theme as T
 from helpers import (
-    GREEN_THRESHOLD, PHASES, WEEK_HOURS, fmt_week, max_hours_for_week,
+    GREEN_THRESHOLD, PHASES, WEEK_HOURS, fmt_week, member_capacity,
     member_week_hours, month_label, week_keys, weeks_between,
 )
 
@@ -25,9 +25,15 @@ def render(audits, members, activity, role: str) -> None:
     avg_completion = round(sum(a.completion_pct or 0 for a in active) / len(active)) if active else 0
     critical_high = sum(1 for a in audits if a.risk_rating in ("Critical", "High"))
 
-    overloaded = [m for m in members if mwh.get(m.id, {}).get(current_week, 0) > WEEK_HOURS]
-    on_track = [m for m in members if GREEN_THRESHOLD <= mwh.get(m.id, {}).get(current_week, 0) <= WEEK_HOURS]
-    available = [m for m in members if mwh.get(m.id, {}).get(current_week, 0) < GREEN_THRESHOLD]
+    def _cap(m):
+        return member_capacity(m, current_week)
+
+    def _load(m):
+        return mwh.get(m.id, {}).get(current_week, 0)
+
+    overloaded = [m for m in members if _load(m) > _cap(m)]
+    on_track = [m for m in members if round(_cap(m) * 0.75) <= _load(m) <= _cap(m)]
+    available = [m for m in members if _load(m) < round(_cap(m) * 0.75)]
 
     # KPI row
     cols = st.columns(6)
@@ -60,7 +66,7 @@ def render(audits, members, activity, role: str) -> None:
                 f'<div style="display:flex;justify-content:space-between;align-items:center;'
                 f'padding:8px 0;border-bottom:1px solid {T.BORDER}">'
                 f'<div style="display:flex;gap:10px;align-items:center">'
-                f'<div style="width:4px;height:30px;border-radius:2px;background:{T.RISK_COLOR[a.risk_rating]}"></div>'
+                f'<div style="width:4px;height:30px;border-radius:2px;background:{T.risk_color(a.risk_rating)}"></div>'
                 f'<div><div style="font-weight:600;color:{T.TEXT}">{T.safe(a.name)}</div>'
                 f'<div style="font-size:11px;color:{T.TEXT_MUTED};margin-top:2px">'
                 f'{a.phase} · {T.safe(a.owner) or "Unassigned"} · {a.risk_rating} risk</div></div></div>'
@@ -95,7 +101,7 @@ def render(audits, members, activity, role: str) -> None:
                 st.markdown(
                     f'<div style="display:flex;justify-content:space-between;font-size:12px;color:{T.TEXT_MUTED};padding:3px 0">'
                     f'<span>{T.safe(m.name)}</span><span style="color:{T.SUCCESS};font-family:Menlo,monospace">'
-                    f'{WEEK_HOURS - mwh[m.id][current_week]}h free</span></div>',
+                    f'{member_capacity(m, current_week) - mwh[m.id][current_week]}h free</span></div>',
                     unsafe_allow_html=True,
                 )
         st.markdown("</div>", unsafe_allow_html=True)
@@ -109,9 +115,9 @@ def render(audits, members, activity, role: str) -> None:
             st.markdown(
                 f'<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">'
                 f'<div style="width:118px;flex-shrink:0">'
-                f'{T.badge_html(phase, T.PHASE_COLOR[phase])}</div>'
+                f'{T.badge_html(phase, T.phase_color(phase))}</div>'
                 f'<div style="flex:1;min-width:0;height:6px;background:{T.PAPER_ALT};border-radius:3px;overflow:hidden">'
-                f'<div style="width:{pct}%;height:100%;background:{T.PHASE_COLOR[phase]}"></div></div>'
+                f'<div style="width:{pct}%;height:100%;background:{T.phase_color(phase)}"></div></div>'
                 f'<div style="font-family:Menlo,monospace;font-size:12px;font-weight:700;min-width:24px;text-align:right">{count}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
@@ -121,7 +127,7 @@ def render(audits, members, activity, role: str) -> None:
     if overloaded:
         st.error(
             f"**Capacity alert**, {len(overloaded)} team member"
-            f"{'s are' if len(overloaded) > 1 else ' is'} over {WEEK_HOURS}h this week."
+            f"{'s are' if len(overloaded) > 1 else ' is'} over capacity this week."
         )
 
     # 52-week heatmap
@@ -143,7 +149,7 @@ def _build_utilization_df(members, mwh, weeks):
 
     # Totals + available
     week_totals = [sum(mwh.get(m.id, {}).get(w, 0) for m in members) for _, _, w in cols]
-    week_avail = [len(members) * max_hours_for_week(w) - week_totals[i] for i, (_, _, w) in enumerate(cols)]
+    week_avail = [sum(member_capacity(m, w) for m in members) - week_totals[i] for i, (_, _, w) in enumerate(cols)]
     index += ["Team Total", "Available Capacity"]
     rows += [week_totals, week_avail]
 

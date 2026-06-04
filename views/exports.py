@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+import data
 import theme as T
 from exports.workbooks import (
     activity_log_xlsx, audit_plan_xlsx, executive_xlsx,
@@ -10,9 +11,35 @@ from exports.workbooks import (
 from helpers import member_week_hours, week_keys
 
 
-def render(audits, members, activity, role: str) -> None:
+@st.cache_data(show_spinner=False, max_entries=20)
+def _workbook_bytes(kind: str, fingerprint: str) -> bytes:
+    """Build one workbook, cached until the data fingerprint changes.
+
+    Every mutation in the app writes an activity row, so the latest activity
+    entry plus row counts is a reliable version key. Data is re-fetched here
+    rather than passed in because ORM objects are not hashable cache keys.
+    """
+    audits = data.list_audits()
+    members = data.list_members()
     weeks = week_keys()
     mwh = member_week_hours(audits, members, weeks)
+    builders = {
+        "plan": lambda: audit_plan_xlsx(audits, members),
+        "roster": lambda: team_roster_xlsx(members, audits, mwh, weeks),
+        "util": lambda: utilization_xlsx(members, mwh, weeks),
+        "exec": lambda: executive_xlsx(audits, members),
+        "activity": lambda: activity_log_xlsx(data.list_activity()),
+    }
+    return builders[kind]().getvalue()
+
+
+def _fingerprint(audits, members, activity) -> str:
+    last = activity[0].timestamp.isoformat() if activity else ""
+    return f"{len(audits)}|{len(members)}|{len(activity)}|{last}"
+
+
+def render(audits, members, activity, role: str) -> None:
+    fp = _fingerprint(audits, members, activity)
 
     st.markdown(
         f'<div class="ledger-card" style="margin-bottom:18px;display:flex;gap:14px;align-items:flex-start">'
@@ -30,28 +57,23 @@ def render(audits, members, activity, role: str) -> None:
     cards = [
         ("Audit Plan",
          "Every audit with phase, risk, owner, allocated vs. budgeted hours, and objectives.",
-         "audit-plan.xlsx",
-         lambda: audit_plan_xlsx(audits, members)),
+         "audit-plan.xlsx", "plan"),
         ("Team Roster",
          "Members with this-week load, annual hours, current status, and assigned audits.",
-         "team-roster.xlsx",
-         lambda: team_roster_xlsx(members, audits, mwh, weeks)),
+         "team-roster.xlsx", "roster"),
         ("52-Week Utilization",
          "Heatmap workbook with month banding, week-by-week hours, team totals, and available capacity.",
-         "utilization-52wk.xlsx",
-         lambda: utilization_xlsx(members, mwh, weeks)),
+         "utilization-52wk.xlsx", "util"),
         ("Executive Summary",
          "Audit Committee–ready report: traffic-light status by audit, plus a Business Unit breakdown sheet.",
-         "executive-summary.xlsx",
-         lambda: executive_xlsx(audits, members)),
+         "executive-summary.xlsx", "exec"),
         ("Activity Log",
          "Full audit trail of every change made to this workspace, sorted newest first.",
-         "activity-log.xlsx",
-         lambda: activity_log_xlsx(activity)),
+         "activity-log.xlsx", "activity"),
     ]
 
     cols = st.columns(2)
-    for i, (title, desc, fname, builder) in enumerate(cards):
+    for i, (title, desc, fname, kind) in enumerate(cards):
         with cols[i % 2]:
             st.markdown('<div class="ledger-card">', unsafe_allow_html=True)
             st.markdown(f"#### {title}")
@@ -59,7 +81,7 @@ def render(audits, members, activity, role: str) -> None:
                         unsafe_allow_html=True)
             st.download_button(
                 label=f"⤓  Download {fname}",
-                data=builder(),
+                data=_workbook_bytes(kind, fp),
                 file_name=fname,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 key=f"dl_{fname}",

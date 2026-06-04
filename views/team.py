@@ -5,7 +5,7 @@ import streamlit as st
 
 import data
 import theme as T
-from helpers import GREEN_THRESHOLD, LEVELS, WEEK_HOURS, member_week_hours, week_keys
+from helpers import LEVELS, member_capacity, member_week_hours, week_keys
 
 
 def render(audits, members, activity, role: str) -> None:
@@ -25,14 +25,15 @@ def render(audits, members, activity, role: str) -> None:
     rows = []
     for m in sorted_members:
         this_week = mwh.get(m.id, {}).get(current_week, 0)
+        cap = member_capacity(m, current_week)
         annual = sum(mwh.get(m.id, {}).get(w, 0) for w in weeks)
         assigned = ", ".join(a.name for a in audits if any(asgn.member_id == m.id for asgn in a.assignments))
-        status = "Overloaded" if this_week > WEEK_HOURS else "Available" if this_week < GREEN_THRESHOLD else "Utilized"
+        status = "Overloaded" if this_week > cap else "Available" if this_week < round(cap * 0.75) else "Utilized"
         rows.append({
             "Name": m.name,
             "Level": m.level,
             "Email": m.email or "",
-            "This Week": f"{this_week}h / {WEEK_HOURS}h",
+            "This Week": f"{this_week}h / {cap}h",
             "Annual": f"{annual:,}h",
             "Status": status,
             "Assigned Audits": assigned or "-",
@@ -97,9 +98,9 @@ def _member_edit_dialog(member_id: str):
     st.markdown(f"### {'Add Team Member' if is_new else 'Edit Team Member'}")
     with st.form("member_form"):
         name = st.text_input("Full name", value="" if is_new else m.name)
-        email = st.text_input("Email", value="" if is_new else (m.email or ""), placeholder="name@walgreens.com")
+        email = st.text_input("Email", value="" if is_new else (m.email or ""), placeholder="name@example.com")
         c1, c2 = st.columns(2)
-        level = c1.selectbox("Level", LEVELS, index=LEVELS.index("Staff") if is_new else LEVELS.index(m.level))
+        level = c1.selectbox("Level", LEVELS, index=LEVELS.index("Staff") if (is_new or m.level not in LEVELS) else LEVELS.index(m.level))
         hours = c2.number_input("Hours/week", min_value=0, max_value=80, value=40 if is_new else m.hours_per_week, step=5)
 
         save_col, cancel_col = st.columns(2)

@@ -68,6 +68,17 @@ def max_hours_for_week(iso: str) -> int:
     return 32 if is_holiday_week(iso) else WEEK_HOURS
 
 
+def member_capacity(member, week_iso: str | None = None) -> int:
+    """Weekly capacity for one person, honoring their hours_per_week.
+
+    Holiday weeks subtract one 8-hour day, floored at 0.
+    """
+    base = getattr(member, "hours_per_week", None) or WEEK_HOURS
+    if week_iso and is_holiday_week(week_iso):
+        return max(0, base - 8)
+    return base
+
+
 def risk_from_score(likelihood: int, impact: int) -> str:
     score = likelihood * impact
     if score >= 16:

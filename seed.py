@@ -11,8 +11,8 @@ def seed_if_empty() -> bool:
             return False
 
         members = [
-            TeamMember(name="Adam Parker",   level="Director",     hours_per_week=40, email="adam.parker@walgreens.com"),
-            TeamMember(name="Sarah Chen",    level="Manager",      hours_per_week=40, email="sarah.chen@walgreens.com"),
+            TeamMember(name="Adam Parker",   level="Director",     hours_per_week=40, email="adam.parker@example.com"),
+            TeamMember(name="Sarah Chen",    level="Manager",      hours_per_week=40, email="sarah.chen@example.com"),
             TeamMember(name="James Wilson",  level="Senior Staff", hours_per_week=40),
             TeamMember(name="Maria Lopez",   level="Staff",        hours_per_week=40),
             TeamMember(name="David Kim",     level="Staff",        hours_per_week=40),
@@ -31,7 +31,7 @@ def seed_if_empty() -> bool:
                 owner="Sarah Chen", sponsor="CFO", business_unit="Finance",
                 objectives="Evaluate design and operating effectiveness of SOX 404 controls over revenue recognition and accounts receivable.",
                 scope="Revenue cycle including order-to-cash, credit management, and revenue recognition across retail and pharmacy segments. Period: FY2026 Q1-Q2.",
-                workpaper_url="https://walgreens.sharepoint.com/sox-2026-revenue",
+                workpaper_url="https://example.sharepoint.com/sox-2026-revenue",
                 assignments=[
                     Assignment(member_id=by_name["Sarah Chen"].id, hours_per_week=20),
                     Assignment(member_id=by_name["James Wilson"].id, hours_per_week=15),

@@ -55,7 +55,7 @@ def _render_sidebar(role: str, username: str) -> str:
             f'letter-spacing:1px;margin-top:2px">{role}</div>',
             unsafe_allow_html=True,
         )
-        if st.button("Sign out", use_container_width=True):
+        if not auth.is_databricks() and st.button("Sign out", use_container_width=True):
             for k in ("authentication_status", "name", "username"):
                 st.session_state.pop(k, None)
             st.rerun()
@@ -82,17 +82,10 @@ def _render_header(tab: str) -> None:
 
 def main() -> None:
     _ensure_initialized()
-    authenticator = auth.get_authenticator()
-    name, status, username = auth.render_login(authenticator)
-
-    if status is False:
-        st.error("Username/password incorrect.")
+    user = auth.resolve_user()
+    if user is None:
         return
-    if status is None:
-        st.info("Please sign in to continue.")
-        return
-
-    role = auth.get_role(username)
+    name, username, role = user
     tab = _render_sidebar(role, name)
     _render_header(tab)
 

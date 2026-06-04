@@ -49,12 +49,12 @@ def render(audits, members, activity, role: str) -> None:
             unsafe_allow_html=True,
         )
         for a in items:
-            l = traffic_light_status(a)
+            light = traffic_light_status(a)
             st.markdown(
                 f'<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;'
                 f'background:{T.PAPER_ALT};border-radius:8px;margin-bottom:6px;border:1px solid {T.BORDER}">'
-                f'<div style="width:12px;height:12px;border-radius:50%;background:{light_color[l]};'
-                f'box-shadow:0 0 12px {light_color[l]}88"></div>'
+                f'<div style="width:12px;height:12px;border-radius:50%;background:{light_color[light]};'
+                f'box-shadow:0 0 12px {light_color[light]}88"></div>'
                 f'<div style="flex:1"><div style="font-size:13px;font-weight:600">{T.safe(a.name)}</div>'
                 f'<div style="font-size:11px;color:{T.TEXT_MUTED};margin-top:2px">'
                 f'{a.phase} · {a.risk_rating} risk · {T.safe(a.owner) or "-"} · {a.completion_pct or 0}% complete</div></div>'

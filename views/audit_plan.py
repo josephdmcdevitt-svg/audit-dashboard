@@ -5,8 +5,9 @@ import streamlit as st
 import data
 import theme as T
 from helpers import (
-    AUDIT_TYPES, BUSINESS_UNITS, LEVELS, PHASES, RISK_LEVELS, WEEK_HOURS,
-    fmt_week, member_week_hours, risk_from_score, week_keys, weeks_between,
+    AUDIT_TYPES, BUSINESS_UNITS, LEVELS, PHASES, RISK_LEVELS,
+    fmt_week, member_capacity, member_week_hours, risk_from_score, week_keys,
+    weeks_between,
 )
 
 
@@ -66,15 +67,15 @@ def _render_audit_card(a, members, weeks, is_editor: bool) -> None:
     over = allocated > a.budgeted_hours
 
     st.markdown(
-        f'<div class="ledger-card" style="border-left:4px solid {T.RISK_COLOR[a.risk_rating]}">',
+        f'<div class="ledger-card" style="border-left:4px solid {T.risk_color(a.risk_rating)}">',
         unsafe_allow_html=True,
     )
     head = st.columns([4, 2])
     head[0].markdown(
         f'<div style="font-size:15px;font-weight:700;margin-bottom:6px">{T.safe(a.name)}</div>'
         f'<div>'
-        f'{T.badge_html(a.phase, T.PHASE_COLOR[a.phase])}'
-        f'{T.badge_html(a.risk_rating + " Risk", T.RISK_COLOR[a.risk_rating])}'
+        f'{T.badge_html(a.phase, T.phase_color(a.phase))}'
+        f'{T.badge_html(a.risk_rating + " Risk", T.risk_color(a.risk_rating))}'
         f'{T.badge_html(T.safe(a.type), T.TEXT_MUTED)}'
         + (T.badge_html(T.safe(a.business_unit), T.TEXT_MUTED) if a.business_unit else "")
         + (T.badge_html(f"{len(a.notes)} Notes", T.TEXT_DIM) if a.notes else "")
@@ -164,8 +165,8 @@ def _audit_edit_dialog(audit_id: str, members, weeks):
     with st.form("audit_form", clear_on_submit=False):
         name = st.text_input("Audit name", value="" if is_new else a.name)
         c1, c2 = st.columns(2)
-        phase = c1.selectbox("Phase", PHASES, index=0 if is_new else PHASES.index(a.phase))
-        type_ = c2.selectbox("Type", AUDIT_TYPES, index=0 if is_new else AUDIT_TYPES.index(a.type))
+        phase = c1.selectbox("Phase", PHASES, index=PHASES.index(a.phase) if (not is_new and a.phase in PHASES) else 0)
+        type_ = c2.selectbox("Type", AUDIT_TYPES, index=AUDIT_TYPES.index(a.type) if (not is_new and a.type in AUDIT_TYPES) else 0)
 
         c1, c2, c3 = st.columns(3)
         bu_options = ["-", *BUSINESS_UNITS]
@@ -183,7 +184,7 @@ def _audit_edit_dialog(audit_id: str, members, weeks):
         st.markdown(
             f'<span style="font-size:11px;color:{T.TEXT_MUTED};text-transform:uppercase;'
             f'font-weight:700">Computed Risk: </span>'
-            f'{T.badge_html(risk, T.RISK_COLOR[risk], solid=True)}'
+            f'{T.badge_html(risk, T.risk_color(risk), solid=True)}'
             f'<span style="font-size:11px;color:{T.TEXT_DIM}"> · Score {likelihood * impact}</span>',
             unsafe_allow_html=True,
         )
@@ -312,8 +313,9 @@ def _assignment_dialog(audit_id: str, members, audits, weeks, user: str):
             st.rerun()
         load_other = mwh.get(m.id, {}).get(weeks[0], 0) - (initial.get(m.id, 0) if a.start_week <= weeks[0] <= a.end_week else 0)
         load_total = load_other + (new_hrs if a.start_week <= weeks[0] <= a.end_week else 0)
-        over_msg = ", overloaded" if load_total > WEEK_HOURS else ""
-        st.caption(f"Week load: {load_total}h / {WEEK_HOURS}h{over_msg} · Total on audit: {new_hrs * weeks_in}h")
+        cap = member_capacity(m, weeks[0])
+        over_msg = ", overloaded" if load_total > cap else ""
+        st.caption(f"Week load: {load_total}h / {cap}h{over_msg} · Total on audit: {new_hrs * weeks_in}h")
 
     st.write("")
     bcols = st.columns([4, 1, 1])
@@ -362,8 +364,8 @@ def _detail_dialog(audit_id: str, can_edit: bool, user: str):
 
     st.markdown(f"### {T.safe(a.name)}")
     st.markdown(
-        T.badge_html(a.phase, T.PHASE_COLOR[a.phase])
-        + T.badge_html(f"{a.risk_rating} Risk (L{a.likelihood} × I{a.impact})", T.RISK_COLOR[a.risk_rating])
+        T.badge_html(a.phase, T.phase_color(a.phase))
+        + T.badge_html(f"{a.risk_rating} Risk (L{a.likelihood} × I{a.impact})", T.risk_color(a.risk_rating))
         + T.badge_html(T.safe(a.type), T.TEXT_MUTED)
         + (T.badge_html(T.safe(a.business_unit), T.TEXT_MUTED) if a.business_unit else "")
         + T.badge_html(f"Owner: {T.safe(a.owner) or '-'}", T.TEXT_MUTED)

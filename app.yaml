@@ -1,0 +1,20 @@
+command: ['streamlit', 'run', 'app.py']
+
+# STREAMLIT_SERVER_PORT and STREAMLIT_SERVER_ADDRESS are set automatically
+# by the Databricks Apps runtime. Do not override them here.
+env:
+  - name: 'STREAMLIT_GATHER_USAGE_STATS'
+    value: 'false'
+
+  # Comma-separated list of emails that get the editor role.
+  # Everyone else who can reach the app via workspace SSO is a viewer.
+  - name: 'EDITOR_EMAILS'
+    value: 'you@yourcompany.com'
+
+  # Point at Postgres (e.g. Databricks Lakebase) for persistence.
+  # The app container filesystem is ephemeral; SQLite data is lost on
+  # every redeploy or restart. Use a secret resource for credentials:
+  # - name: 'DATABASE_URL'
+  #   valueFrom: 'database-url-secret'
+  - name: 'DATABASE_URL'
+    value: 'sqlite:///data/workspace.db'

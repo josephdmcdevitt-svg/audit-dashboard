@@ -4,7 +4,7 @@ Internal audit planning dashboard. Tracks engagements, allocates team hours
 over a 52-week horizon, and exports Excel workbooks for the Audit Committee.
 
 Streamlit + SQLAlchemy + openpyxl. SQLite by default, swap in PostgreSQL via
-`DATABASE_URL`.
+`DATABASE_URL`. Runs locally, in Docker, or as a Databricks App.
 
 ## Run locally
 
@@ -19,13 +19,42 @@ streamlit run app.py
 
 Open http://localhost:8501.
 
-First start creates `data/workspace.db`, seeds 4 sample audits and a 6-person
-team, and writes a bootstrap `auth_config.yaml` with `admin` / `admin`.
-Rotate the password before sharing the URL with anyone:
+First start creates `data/workspace.db` and seeds 4 sample audits and a
+6-person team. If no `auth_config.yaml` exists, set `BOOTSTRAP_ADMIN_PASSWORD`
+to a strong password before the first run; the app creates an `admin` user
+from it. Add more users by generating hashes:
 
 ```bash
 python -m auth --hash YOUR_NEW_PASSWORD
 # paste the hash into auth_config.yaml
+```
+
+## Deploy to Databricks Apps
+
+The repo includes an `app.yaml`, which is all Databricks Apps needs (the
+Dockerfile is for other hosts; Databricks ignores it and installs
+`requirements.txt` into its own runtime, Python 3.11 on Ubuntu 22.04).
+
+1. Sync the repo into your workspace (Git folder or `databricks apps deploy`).
+2. Edit `app.yaml`: set `EDITOR_EMAILS` to the comma-separated workspace
+   emails that should get edit rights. Everyone else is a viewer.
+3. Point `DATABASE_URL` at Postgres (Lakebase or any reachable instance),
+   ideally via a secret resource. The app container filesystem is ephemeral,
+   so the default SQLite file is wiped on every redeploy or restart.
+4. Deploy. Do not set ports or addresses; the runtime injects
+   `STREAMLIT_SERVER_PORT` and `STREAMLIT_SERVER_ADDRESS` automatically.
+
+On Databricks there is no login form. The app reads the SSO identity that
+Databricks forwards in request headers (`X-Forwarded-Email`) and maps the
+role from `EDITOR_EMAILS`. The streamlit-authenticator flow only runs for
+local and Docker deployments. To preview the SSO path locally, set
+`DEV_FAKE_USER_EMAIL=you@example.com`.
+
+## Tests
+
+```bash
+pip install pytest
+python -m pytest tests/
 ```
 
 ## Users and roles

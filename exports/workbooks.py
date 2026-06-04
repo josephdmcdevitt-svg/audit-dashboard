@@ -8,8 +8,8 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 
 from helpers import (
-    BUSINESS_UNITS, GREEN_THRESHOLD, WEEK_HOURS,
-    fmt_week, is_holiday_week, max_hours_for_week, month_label,
+    BUSINESS_UNITS, GREEN_THRESHOLD,
+    fmt_week, is_holiday_week, member_capacity, month_label,
     traffic_light_status, weeks_between,
 )
 
@@ -182,7 +182,8 @@ def team_roster_xlsx(members, audits, member_week_hours, week_keys) -> io.BytesI
         assigned = "; ".join(
             a.name for a in audits if any(asgn.member_id == m.id for asgn in a.assignments)
         )
-        status = "Overloaded" if this_week > WEEK_HOURS else "Available" if this_week < GREEN_THRESHOLD else "Utilized"
+        cap = member_capacity(m, current_week)
+        status = "Overloaded" if this_week > cap else "Available" if this_week < round(cap * 0.75) else "Utilized"
 
         values = [m.name, m.level, m.email or "", this_week, annual, status, assigned]
         for c, v in enumerate(values, start=1):
@@ -256,7 +257,7 @@ def utilization_xlsx(members, member_week_hours, week_keys) -> io.BytesIO:
         for i, w in enumerate(week_keys):
             cell = ws.cell(row=row, column=4 + i)
             h = member_week_hours.get(m.id, {}).get(w, 0)
-            mx = max_hours_for_week(w)
+            mx = member_capacity(m, w)
             cell.value = h
             cell.number_format = "0;-0;–"
             cell.alignment = Alignment(vertical="center", horizontal="center")
@@ -298,7 +299,8 @@ def utilization_xlsx(members, member_week_hours, week_keys) -> io.BytesIO:
     # Available row
     avail_row = totals_row + 1
     week_avail = [
-        len(members) * max_hours_for_week(w) - week_totals[i] for i, w in enumerate(week_keys)
+        sum(member_capacity(m, w) for m in members) - week_totals[i]
+        for i, w in enumerate(week_keys)
     ]
     avail_total = sum(max(0, v) for v in week_avail)
     ws.cell(row=avail_row, column=1, value="Available Capacity")

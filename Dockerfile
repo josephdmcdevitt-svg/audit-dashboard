@@ -26,17 +26,7 @@ EXPOSE 8501
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
   CMD curl -fsS http://localhost:8501/_stcore/health || exit 1
 
+# Server, client, and theme settings live in .streamlit/config.toml
 CMD ["streamlit", "run", "app.py", \
      "--server.port=8501", \
-     "--server.address=0.0.0.0", \
-     "--server.headless=true", \
-     "--server.enableXsrfProtection=true", \
-     "--browser.gatherUsageStats=false", \
-     "--client.toolbarMode=minimal", \
-     "--client.showSidebarNavigation=false", \
-     "--theme.base=light", \
-     "--theme.primaryColor=#1a2332", \
-     "--theme.backgroundColor=#f6f2e9", \
-     "--theme.secondaryBackgroundColor=#efe9dc", \
-     "--theme.textColor=#1a2332", \
-     "--theme.font=serif"]
+     "--server.address=0.0.0.0"]

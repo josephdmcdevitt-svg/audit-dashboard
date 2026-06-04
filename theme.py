@@ -38,6 +38,14 @@ RISK_COLOR = {
     "Critical": "#7a2018",
 }
 
+def phase_color(phase: str) -> str:
+    return PHASE_COLOR.get(phase, TEXT_MUTED)
+
+
+def risk_color(risk: str) -> str:
+    return RISK_COLOR.get(risk, TEXT_MUTED)
+
+
 USER_COLORS = ["#1a2332", "#b8860b", "#4a7c59", "#4a6990", "#a0402e", "#6b7b96", "#c08f3f", "#2d5434"]
 
 
